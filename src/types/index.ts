@@ -25,6 +25,8 @@ export interface Job {
   status: JobStatus;
   date: string;
   notes?: string;
+  url?: string;
+  memo?: string;
 }
 
 export interface DashboardData {

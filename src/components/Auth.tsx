@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import * as styles from './Auth.css';
+import { vars } from '../styles/theme.css';
 
 export const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const { signIn } = useAuth();
+  const { signIn, setGuestMode } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +43,20 @@ export const Auth: React.FC = () => {
             {loading ? '발송 중...' : '매직 링크 발송'}
           </button>
         </form>
+        
+        <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>또는</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+        </div>
+
+        <button 
+          className={styles.button} 
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', color: vars.color.text, border: `1px solid ${vars.color.border}` }}
+          onClick={() => setGuestMode(true)}
+        >
+          로그인 없이 시작하기
+        </button>
         {message && (
           <p style={{ marginTop: '16px', fontSize: '0.85rem', color: message.includes('오류') ? '#ef4444' : '#10b981' }}>
             {message}

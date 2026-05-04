@@ -4,64 +4,111 @@ import { vars, glass } from '../styles/theme.css';
 export const card = style({
   ...glass,
   padding: vars.space.md,
-  borderRadius: vars.radius.md,
+  borderRadius: vars.radius.xl,
   display: 'flex',
   flexDirection: 'column',
-  gap: vars.space.sm,
-  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-  selectors: {
-    '&:hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: vars.shadow.md,
-    }
+  gap: '4px',
+  border: '1px solid rgba(255, 255, 255, 0.4)',
+  transition: 'all 0.2s ease',
+  cursor: 'pointer',
+  ':hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: vars.shadow.md,
   }
+});
+
+// 상태별 파스텔 배경색 정의
+export const cardStatusBg = {
+  todo: style({ backgroundColor: 'rgba(241, 245, 249, 0.6)' }),   // 연한 그레이
+  doing: style({ backgroundColor: 'rgba(224, 242, 254, 0.6)' }),  // 연한 하늘색
+  done: style({ backgroundColor: 'rgba(240, 253, 244, 0.6)' }),   // 연한 초록색
+};
+
+export const header = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: vars.space.sm,
 });
 
 export const title = style({
   fontSize: '1rem',
-  fontWeight: 500,
+  fontWeight: 600,
   color: vars.color.text,
+  margin: 0,
+  lineHeight: 1.3,
+  flex: 1,
 });
 
 export const timerSection = style({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  marginTop: vars.space.sm,
-  padding: `${vars.space.xs} ${vars.space.sm}`,
-  backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  borderRadius: vars.radius.sm,
+  marginTop: '2px',
 });
 
 export const timeText = style({
   fontFamily: 'monospace',
-  fontSize: '0.9rem',
+  fontSize: '0.85rem',
+  fontWeight: 700,
   color: vars.color.primary,
+  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  padding: '2px 8px',
+  borderRadius: '4px',
 });
 
 export const controls = style({
   display: 'flex',
-  gap: vars.space.xs,
+  gap: '4px',
 });
 
 export const iconButton = style({
   background: 'none',
   border: 'none',
-  color: vars.color.textMuted,
+  color: '#94a3b8',
   cursor: 'pointer',
-  padding: vars.space.xs,
-  borderRadius: '50%',
+  padding: '4px',
+  borderRadius: vars.radius.sm,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   transition: 'all 0.2s ease',
-  selectors: {
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      color: vars.color.text,
-    }
+  ':hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    color: vars.color.text,
   }
 });
+
+export const timerButton = style([
+  iconButton,
+  {
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    color: vars.color.primary,
+    ':hover': {
+      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    },
+  },
+]);
+
+export const doneButton = style([
+  iconButton,
+  {
+    color: '#10b981',
+    ':hover': {
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    },
+  },
+]);
+
+export const deleteButton = style([
+  iconButton,
+  {
+    color: '#cbd5e1', 
+    ':hover': {
+      backgroundColor: 'rgba(239, 68, 68, 0.05)',
+      color: '#94a3b8',
+    },
+  },
+]);
 
 export const active = style({
   color: vars.color.success,

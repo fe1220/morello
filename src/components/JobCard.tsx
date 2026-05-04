@@ -1,8 +1,8 @@
 import React from 'react';
 import * as styles from './JobCard.css';
 import { Job, JobStatus } from '../types';
+import { Trash2, ExternalLink } from 'lucide-react';
 import clsx from 'clsx';
-import { MoreHorizontal } from 'lucide-react';
 
 interface JobCardProps {
   job: Job;
@@ -10,7 +10,7 @@ interface JobCardProps {
   onDelete: (id: string) => void;
 }
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onDelete }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
   const statusLabels: Record<JobStatus, string> = {
     pending: '관심/준비',
     applied: '서류접수',
@@ -20,33 +20,30 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onDelete 
   };
 
   return (
-    <div className={styles.card}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div className={styles.company}>{job.company}</div>
-          <div className={styles.position}>{job.position}</div>
-        </div>
-        <button onClick={() => onDelete(job.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
-          <MoreHorizontal size={16} />
+    <div className={clsx(styles.card, styles.cardStatusBg[job.status])}>
+      <div className={styles.header}>
+        <h3 className={styles.company}>{job.company}</h3>
+        <button className={styles.deleteButton} onClick={() => onDelete(job.id)}>
+          <Trash2 size={16} />
         </button>
       </div>
       
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {(Object.keys(statusLabels) as JobStatus[]).map((s) => (
-          <button
-            key={s}
-            onClick={() => onStatusChange(job.id, s)}
-            className={clsx(styles.badge, job.status === s && (styles.statusColors as any)[s])}
-            style={{ 
-              cursor: 'pointer', 
-              border: 'none',
-              background: job.status === s ? undefined : 'rgba(255, 255, 255, 0.05)',
-              color: job.status === s ? undefined : '#94a3b8'
-            }}
-          >
-            {statusLabels[s]}
-          </button>
-        ))}
+      <div className={styles.positionWrapper}>
+        <p className={styles.position}>{job.position}</p>
+        {job.url && (
+          <a href={job.url} target="_blank" rel="noopener noreferrer" className={styles.linkIcon}>
+            <ExternalLink size={14} />
+          </a>
+        )}
+      </div>
+      
+      {job.memo && <p className={styles.memo}>{job.memo}</p>}
+      
+      <div className={styles.footer}>
+        <span className={clsx(styles.statusBadge, styles.statusColors[job.status])}>
+          {statusLabels[job.status]}
+        </span>
+        <span className={styles.date}>{job.date}</span>
       </div>
     </div>
   );
