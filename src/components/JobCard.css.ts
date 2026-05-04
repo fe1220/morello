@@ -8,7 +8,7 @@ export const card = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '2px',
-  border: '1px solid rgba(255, 255, 255, 0.4)', // 왼쪽 선 대신 전체 테두리 연하게
+  border: '1px solid rgba(255, 255, 255, 0.4)',
   transition: 'all 0.2s ease',
   '@media': {
     'screen and (max-width: 768px)': {
@@ -17,13 +17,12 @@ export const card = style({
   }
 });
 
-// 상태별 파스텔 배경색 정의
 export const cardStatusBg = {
-  pending: style({ backgroundColor: 'rgba(241, 245, 249, 0.6)' }),   // 연한 그레이/블루
-  applied: style({ backgroundColor: 'rgba(224, 242, 254, 0.6)' }),   // 연한 하늘색
-  interviewing: style({ backgroundColor: 'rgba(238, 242, 255, 0.6)' }), // 연한 보라색
-  ended: style({ backgroundColor: 'rgba(255, 241, 242, 0.6)' }),           // 연한 핑크
-  passed: style({ backgroundColor: 'rgba(240, 253, 244, 0.6)' }),    // 연한 초록색
+  pending: style({ backgroundColor: 'rgba(241, 245, 249, 0.6)' }),
+  applied: style({ backgroundColor: 'rgba(224, 242, 254, 0.6)' }),
+  interviewing: style({ backgroundColor: 'rgba(238, 242, 255, 0.6)' }),
+  ended: style({ backgroundColor: 'rgba(255, 241, 242, 0.6)' }),
+  passed: style({ backgroundColor: 'rgba(240, 253, 244, 0.6)' }),
 };
 
 export const header = style({
@@ -69,13 +68,13 @@ export const memo = style({
   fontSize: '0.85rem',
   color: '#475569',
   backgroundColor: 'rgba(0, 0, 0, 0.02)',
-  padding: '6px 10px', // 패딩 소폭 조정
+  padding: '6px 10px',
   borderRadius: vars.radius.md,
-  whiteSpace: 'nowrap', // 한 줄 유지
-  overflow: 'hidden', // 넘치는 내용 숨김
-  textOverflow: 'ellipsis', // 말줄임표 적용
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
   margin: 0,
-  marginTop: '6px', // 간격 소폭 축소
+  marginTop: '6px',
   width: '100%',
   border: '1px solid rgba(0, 0, 0, 0.02)',
 });
@@ -83,7 +82,7 @@ export const memo = style({
 export const deleteButton = style({
   background: 'none',
   border: 'none',
-  color: '#cbd5e1', // 연한 회색
+  color: '#cbd5e1',
   cursor: 'pointer',
   padding: '4px',
   borderRadius: vars.radius.sm,
@@ -98,16 +97,38 @@ export const footer = style({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginTop: vars.space.sm, // 간격 줄임 (md -> sm)
+  marginTop: vars.space.sm,
   paddingTop: vars.space.sm,
   borderTop: `1px solid rgba(0, 0, 0, 0.05)`,
 });
 
-export const statusBadge = style({
+export const statusSelectWrapper = style({
+  position: 'relative',
+  display: 'inline-flex',
+  alignItems: 'center',
+});
+
+export const statusSelect = style({
+  appearance: 'none',
   fontSize: '0.75rem',
   fontWeight: 700,
-  padding: '2px 8px',
+  padding: '2px 24px 2px 8px',
   borderRadius: '12px',
+  border: 'none',
+  cursor: 'pointer',
+  outline: 'none',
+  transition: 'all 0.2s ease',
+  ':hover': {
+    filter: 'brightness(0.95)',
+  },
+});
+
+export const selectIcon = style({
+  position: 'absolute',
+  right: '8px',
+  pointerEvents: 'none',
+  color: 'currentColor',
+  opacity: 0.7,
 });
 
 export const date = style({

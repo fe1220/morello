@@ -1,7 +1,7 @@
 import React from 'react';
 import * as styles from './JobCard.css';
 import { Job, JobStatus } from '../types';
-import { Trash2, ExternalLink } from 'lucide-react';
+import { Trash2, ExternalLink, ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 
 interface JobCardProps {
@@ -10,7 +10,7 @@ interface JobCardProps {
   onDelete: (id: string) => void;
 }
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onDelete }) => {
   const statusLabels: Record<JobStatus, string> = {
     pending: '관심/준비',
     applied: '서류접수',
@@ -40,9 +40,18 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
       {job.memo && <p className={styles.memo}>{job.memo}</p>}
       
       <div className={styles.footer}>
-        <span className={clsx(styles.statusBadge, styles.statusColors[job.status])}>
-          {statusLabels[job.status]}
-        </span>
+        <div className={styles.statusSelectWrapper}>
+          <select 
+            className={clsx(styles.statusSelect, styles.statusColors[job.status])}
+            value={job.status}
+            onChange={(e) => onStatusChange(job.id, e.target.value as JobStatus)}
+          >
+            {Object.entries(statusLabels).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <ChevronDown size={12} className={styles.selectIcon} />
+        </div>
         <span className={styles.date}>{job.date}</span>
       </div>
     </div>
