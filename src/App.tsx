@@ -5,11 +5,11 @@ import { Auth } from './components/Auth';
 import { TaskCard } from './components/TaskCard';
 import { JobCard } from './components/JobCard';
 import { Modal } from './components/Modal';
-import { TaskStatus, JobStatus } from './types';
+import { TaskStatus, JobStatus, Job } from './types';
 import * as modalStyles from './components/Modal.css';
 import * as styles from './App.css';
 import clsx from 'clsx';
-import { LayoutDashboard, Briefcase, LogOut, LogIn, Plus } from 'lucide-react';
+import { LayoutDashboard, Briefcase, LogOut, LogIn, Plus, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const App: React.FC = () => {
@@ -17,12 +17,20 @@ const App: React.FC = () => {
   const { 
     tasks, jobs, 
     addTask, updateTaskStatus, toggleTimer, deleteTask,
-    addJob, updateJobStatus, deleteJob 
+    addJob, updateJobStatus, updateJob, deleteJob 
   } = useDashboard(user, isGuest);
   
   const [activeTab, setActiveTab] = useState<'tasks' | 'jobs'>('tasks');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [isJobDetailModalOpen, setIsJobDetailModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+
+  // Job detail edit state
+  const [detailCompany, setDetailCompany] = useState('');
+  const [detailPosition, setDetailPosition] = useState('');
+  const [detailUrl, setDetailUrl] = useState('');
+  const [detailMemo, setDetailMemo] = useState('');
   
   // Task form state
   const [taskTitle, setTaskTitle] = useState('');
@@ -60,6 +68,37 @@ const App: React.FC = () => {
     setJobUrl('');
     setJobMemo('');
     setIsJobModalOpen(false);
+  };
+
+  const handleJobClick = (job: Job) => {
+    setSelectedJob(job);
+    setDetailCompany(job.company);
+    setDetailPosition(job.position || '');
+    setDetailUrl(job.url || '');
+    setDetailMemo(job.memo || '');
+    setIsJobDetailModalOpen(true);
+  };
+
+  const handleJobUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedJob) {
+      updateJob(selectedJob.id, {
+        company: detailCompany,
+        position: detailPosition,
+        url: detailUrl,
+        memo: detailMemo
+      });
+      setIsJobDetailModalOpen(false);
+      setSelectedJob(null);
+    }
+  };
+
+  const handleJobDelete = () => {
+    if (selectedJob) {
+      deleteJob(selectedJob.id);
+      setIsJobDetailModalOpen(false);
+      setSelectedJob(null);
+    }
   };
 
   const onDragEnd = (result: DropResult) => {
@@ -203,7 +242,7 @@ const App: React.FC = () => {
                                   >
                                     <JobCard 
                                       job={job} 
-                                      onDelete={deleteJob}
+                                      onCardClick={handleJobClick}
                                       onStatusChange={updateJobStatus}
                                     />
                                   </div>
@@ -235,7 +274,7 @@ const App: React.FC = () => {
             />
           </div>
           <div className={modalStyles.buttonGroup}>
-            <button type="button" className={modalStyles.cancelButton} onClick={() => setIsTaskModalOpen(false)}>취소</button>
+            <button type="button" className={modalStyles.cancelButton} onClick={() => setIsTaskModalOpen(false)}>닫기</button>
             <button type="submit" className={modalStyles.submitButton}>추가하기</button>
           </div>
         </form>
@@ -283,8 +322,96 @@ const App: React.FC = () => {
             />
           </div>
           <div className={modalStyles.buttonGroup}>
-            <button type="button" className={modalStyles.cancelButton} onClick={() => setIsJobModalOpen(false)}>취소</button>
-            <button type="submit" className={modalStyles.submitButton}>추가하기</button>
+            <button type="button" className={modalStyles.cancelButton} onClick={() => setIsJobModalOpen(false)}>닫기</button>
+            <button 
+              type="submit" 
+              className={modalStyles.submitButton}
+              disabled={!jobCompany.trim() || !jobPosition.trim()}
+            >
+              추가하기
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal 
+        isOpen={isJobDetailModalOpen} 
+        onClose={() => setIsJobDetailModalOpen(false)} 
+        title="취업 정보 상세 및 수정"
+      >
+        <form onSubmit={handleJobUpdate} className={modalStyles.form}>
+          <div>
+            <label className={modalStyles.label}>회사명</label>
+            <input 
+              className={modalStyles.input}
+              value={detailCompany}
+              onChange={(e) => setDetailCompany(e.target.value)}
+              placeholder="회사 이름을 입력하세요"
+              required
+            />
+          </div>
+          <div>
+            <label className={modalStyles.label}>포지션</label>
+            <input 
+              className={modalStyles.input}
+              value={detailPosition}
+              onChange={(e) => setDetailPosition(e.target.value)}
+              placeholder="공고상의 직무를 입력하세요"
+              required
+            />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label className={modalStyles.label}>공고 링크</label>
+              {detailUrl && (
+                <a href={detailUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#0ea5e9', marginBottom: '6px' }}>
+                  <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+            <input 
+              className={modalStyles.input}
+              value={detailUrl}
+              onChange={(e) => setDetailUrl(e.target.value)}
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className={modalStyles.label}>메모</label>
+            <textarea 
+              className={modalStyles.textarea}
+              value={detailMemo}
+              onChange={(e) => setDetailMemo(e.target.value)}
+              placeholder="간단한 메모를 남겨보세요"
+              rows={4}
+            />
+          </div>
+          
+          <div className={modalStyles.buttonGroup} style={{ marginTop: '24px' }}>
+            <button 
+              type="button" 
+              className={modalStyles.cancelButton} 
+              style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.05)', marginRight: 'auto', padding: '8px 12px' }}
+              onClick={handleJobDelete}
+              title="삭제하기"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button type="button" className={modalStyles.cancelButton} onClick={() => setIsJobDetailModalOpen(false)}>
+              닫기
+            </button>
+            <button 
+              type="submit" 
+              className={modalStyles.submitButton}
+              disabled={
+                detailCompany === selectedJob?.company &&
+                detailPosition === (selectedJob?.position || '') &&
+                detailUrl === (selectedJob?.url || '') &&
+                detailMemo === (selectedJob?.memo || '')
+              }
+            >
+              저장하기
+            </button>
           </div>
         </form>
       </Modal>

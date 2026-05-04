@@ -72,6 +72,7 @@ export const input = style({
   border: '1px solid rgba(255, 255, 255, 0.5)',
   backgroundColor: 'rgba(255, 255, 255, 0.6)',
   fontSize: '0.95rem', // 폰트 크기 소폭 축소
+  fontFamily: 'inherit',
   outline: 'none',
   transition: 'all 0.2s ease',
   color: vars.color.text,
@@ -114,6 +115,12 @@ export const submitButton = style({
     filter: 'brightness(1.1)',
     transform: 'translateY(-1px)',
   },
+  ':disabled': {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    filter: 'none',
+    transform: 'none',
+  }
 });
 
 export const cancelButton = style({

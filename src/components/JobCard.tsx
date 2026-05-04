@@ -7,10 +7,10 @@ import clsx from 'clsx';
 interface JobCardProps {
   job: Job;
   onStatusChange: (id: string, status: JobStatus) => void;
-  onDelete: (id: string) => void;
+  onCardClick: (job: Job) => void;
 }
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onDelete }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onCardClick }) => {
   const statusLabels: Record<JobStatus, string> = {
     pending: '관심/준비',
     applied: '서류접수',
@@ -19,21 +19,42 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onDelete 
     passed: '합격',
   };
 
+  const getSiteName = (url?: string) => {
+    if (!url) return null;
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes('wanted')) return '원티드';
+    if (lowerUrl.includes('remember')) return '리멤버';
+    if (lowerUrl.includes('groupby')) return '그룹바이';
+    return '기타';
+  };
+
+  const siteName = getSiteName(job.url);
+
   return (
-    <div className={clsx(styles.card, styles.cardStatusBg[job.status])}>
+    <div className={clsx(styles.card, styles.cardStatusBg[job.status])} onClick={() => onCardClick(job)}>
       <div className={styles.header}>
-        <h3 className={styles.company}>{job.company}</h3>
-        <button className={styles.deleteButton} onClick={() => onDelete(job.id)}>
-          <Trash2 size={16} />
-        </button>
+        <div className={styles.headerLeft}>
+          <div className={styles.companyWrapper}>
+            <h3 className={styles.company}>{job.company}</h3>
+          </div>
+        </div>
       </div>
       
       <div className={styles.positionWrapper}>
         <p className={styles.position}>{job.position}</p>
         {job.url && (
-          <a href={job.url} target="_blank" rel="noopener noreferrer" className={styles.linkIcon}>
-            <ExternalLink size={14} />
-          </a>
+          <div className={styles.linkWrapper}>
+            <span className={styles.siteNameText}>{siteName}</span>
+            <a 
+              href={job.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={styles.linkIcon}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={14} />
+            </a>
+          </div>
         )}
       </div>
       
@@ -44,7 +65,11 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onDelete 
           <select 
             className={clsx(styles.statusSelect, styles.statusColors[job.status])}
             value={job.status}
-            onChange={(e) => onStatusChange(job.id, e.target.value as JobStatus)}
+            onChange={(e) => {
+              e.stopPropagation();
+              onStatusChange(job.id, e.target.value as JobStatus);
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
             {Object.entries(statusLabels).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>

@@ -10,6 +10,12 @@ export const card = style({
   gap: '2px',
   border: '1px solid rgba(255, 255, 255, 0.4)',
   transition: 'all 0.2s ease',
+  cursor: 'pointer',
+  ':hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
   '@media': {
     'screen and (max-width: 768px)': {
       padding: vars.space.sm,
@@ -28,15 +34,43 @@ export const cardStatusBg = {
 export const header = style({
   display: 'flex',
   justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: vars.space.sm,
+});
+
+export const headerLeft = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
+export const companyWrapper = style({
+  display: 'flex',
   alignItems: 'center',
+  gap: vars.space.xs,
+  flexWrap: 'wrap',
 });
 
 export const company = style({
-  fontSize: '1.1rem',
+  fontSize: '1.05rem',
   fontWeight: 700,
   color: vars.color.text,
   margin: 0,
   lineHeight: 1.2,
+});
+
+export const linkWrapper = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  marginLeft: 'auto',
+});
+
+export const siteNameText = style({
+  fontSize: '0.7rem',
+  fontWeight: 600,
+  color: vars.color.primary,
+  opacity: 0.8,
 });
 
 export const positionWrapper = style({
@@ -79,19 +113,7 @@ export const memo = style({
   border: '1px solid rgba(0, 0, 0, 0.02)',
 });
 
-export const deleteButton = style({
-  background: 'none',
-  border: 'none',
-  color: '#cbd5e1',
-  cursor: 'pointer',
-  padding: '4px',
-  borderRadius: vars.radius.sm,
-  transition: 'all 0.2s ease',
-  ':hover': {
-    backgroundColor: 'rgba(239, 68, 68, 0.05)',
-    color: '#94a3b8',
-  },
-});
+// Delete button moved to modal, keeping styles for other buttons if needed
 
 export const footer = style({
   display: 'flex',

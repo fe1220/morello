@@ -159,11 +159,15 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
     }
   };
 
-  const updateJobStatus = async (id: string, status: JobStatus) => {
-    if (user) await supabase.from('jobs').update({ status }).eq('id', id);
-    const updated = jobs.map(j => j.id === id ? { ...j, status } : j);
+  const updateJob = async (id: string, updates: Partial<Job>) => {
+    if (user) await supabase.from('jobs').update(updates).eq('id', id);
+    const updated = jobs.map(j => j.id === id ? { ...j, ...updates } : j);
     setJobs(updated);
     saveLocal('morello_jobs', updated);
+  };
+
+  const updateJobStatus = async (id: string, status: JobStatus) => {
+    await updateJob(id, { status });
   };
 
   const deleteJob = async (id: string) => {
@@ -176,6 +180,6 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
   return {
     tasks, jobs, loading,
     addTask, updateTaskStatus, toggleTimer, deleteTask,
-    addJob, updateJobStatus, deleteJob
+    addJob, updateJobStatus, updateJob, deleteJob
   };
 };
