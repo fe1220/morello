@@ -1,72 +1,110 @@
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useDashboard } from './hooks/useDashboard';
-import { KanbanBoard } from './components/KanbanBoard';
+import { Auth } from './components/Auth';
 import { TaskCard } from './components/TaskCard';
 import { JobCard } from './components/JobCard';
-import { Auth } from './components/Auth';
 import { Modal } from './components/Modal';
+import { TaskStatus, JobStatus } from './types';
 import * as modalStyles from './components/Modal.css';
 import * as styles from './App.css';
 import clsx from 'clsx';
-import { LayoutDashboard, Briefcase, LogOut, LogIn } from 'lucide-react';
+import { LayoutDashboard, Briefcase, LogOut, LogIn, Plus } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const App: React.FC = () => {
   const { user, isGuest, loading: authLoading, signOut } = useAuth();
   const { 
-    tasks, jobs, loading: dataLoading,
+    tasks, jobs, 
     addTask, updateTaskStatus, toggleTimer, deleteTask,
     addJob, updateJobStatus, deleteJob 
   } = useDashboard(user, isGuest);
   
   const [activeTab, setActiveTab] = useState<'tasks' | 'jobs'>('tasks');
-  
-  // Modal States - Moved up to avoid hook order violation
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   
-  // Form States - Moved up
+  // Task form state
   const [taskTitle, setTaskTitle] = useState('');
-  const [jobForm, setJobForm] = useState({ company: '', position: '', url: '', memo: '' });
+  
+  // Job form state
+  const [jobCompany, setJobCompany] = useState('');
+  const [jobPosition, setJobPosition] = useState('');
+  const [jobUrl, setJobUrl] = useState('');
+  const [jobMemo, setJobMemo] = useState('');
+
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#0ea5e9' }}>
+        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>Morello 로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (!user && !isGuest) {
+    return <Auth />;
+  }
 
   const handleTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (taskTitle) {
-      addTask(taskTitle);
-      setTaskTitle('');
-      setIsTaskModalOpen(false);
-    }
+    addTask(taskTitle);
+    setTaskTitle('');
+    setIsTaskModalOpen(false);
   };
 
   const handleJobSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (jobForm.company && jobForm.position) {
-      addJob(jobForm.company, jobForm.position, jobForm.url, jobForm.memo);
-      setJobForm({ company: '', position: '', url: '', memo: '' });
-      setIsJobModalOpen(false);
+    addJob(jobCompany, jobPosition, jobUrl, jobMemo);
+    setJobCompany('');
+    setJobPosition('');
+    setJobUrl('');
+    setJobMemo('');
+    setIsJobModalOpen(false);
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    if (activeTab === 'tasks') {
+      updateTaskStatus(draggableId, destination.droppableId as TaskStatus);
+    } else {
+      updateJobStatus(draggableId, destination.droppableId as JobStatus);
     }
   };
 
-  // Conditional returns MUST come after all hook calls
-  if (authLoading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#64748b' }}>로딩 중...</div>;
-  if (!user && !isGuest) return <Auth />;
+  const taskColumns: { id: TaskStatus; title: string }[] = [
+    { id: 'todo', title: '할 일' },
+    { id: 'doing', title: '진행 중' },
+    { id: 'done', title: '완료' },
+  ];
+
+  const jobColumns: { id: JobStatus; title: string }[] = [
+    { id: 'pending', title: '관심/준비' },
+    { id: 'applied', title: '서류접수' },
+    { id: 'interviewing', title: '면접진행' },
+    { id: 'ended', title: '종료/불합격' },
+    { id: 'passed', title: '합격' },
+  ];
 
   return (
-    <div className={styles.appContainer}>
+    <div className={styles.container}>
       <header className={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '1.5rem', margin: 0 }}>🌊 Morello</h1>
+        <div className={styles.logo}>
+          <span style={{ fontSize: '1.5rem' }}>🌊</span> Morello
         </div>
         <nav className={styles.nav}>
           <button 
-            className={clsx(styles.navItem, activeTab === 'tasks' && styles.navActive)}
+            className={clsx(styles.navItem, activeTab === 'tasks' && styles.activeNav)} 
             onClick={() => setActiveTab('tasks')}
           >
             <LayoutDashboard size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
             생산성 관리
           </button>
           <button 
-            className={clsx(styles.navItem, activeTab === 'jobs' && styles.navActive)}
+            className={clsx(styles.navItem, activeTab === 'jobs' && styles.activeNav)} 
             onClick={() => setActiveTab('jobs')}
           >
             <Briefcase size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
@@ -88,109 +126,102 @@ const App: React.FC = () => {
         </nav>
       </header>
 
-      <main>
-        {dataLoading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>데이터 동기화 중...</div>
-        ) : activeTab === 'tasks' ? (
-          <KanbanBoard
-            title="생산성 대시보드"
-            columns={[
-              {
-                id: 'todo',
-                title: '할 일',
-                count: tasks.filter(t => t.status === 'todo').length,
-                onAdd: () => setIsTaskModalOpen(true),
-                children: tasks.filter(t => t.status === 'todo').map(t => (
-                  <TaskCard 
-                    key={t.id} 
-                    task={t} 
-                    onToggleTimer={toggleTimer} 
-                    onDelete={deleteTask}
-                    onStatusChange={updateTaskStatus}
-                  />
-                ))
-              },
-              {
-                id: 'doing',
-                title: '진행 중',
-                count: tasks.filter(t => t.status === 'doing').length,
-                children: tasks.filter(t => t.status === 'doing').map(t => (
-                  <TaskCard 
-                    key={t.id} 
-                    task={t} 
-                    onToggleTimer={toggleTimer} 
-                    onDelete={deleteTask}
-                    onStatusChange={updateTaskStatus}
-                  />
-                ))
-              },
-              {
-                id: 'done',
-                title: '완료',
-                count: tasks.filter(t => t.status === 'done').length,
-                children: tasks.filter(t => t.status === 'done').map(t => (
-                  <TaskCard 
-                    key={t.id} 
-                    task={t} 
-                    onToggleTimer={toggleTimer} 
-                    onDelete={deleteTask}
-                    onStatusChange={updateTaskStatus}
-                  />
-                ))
-              }
-            ]}
-          />
-        ) : (
-          <KanbanBoard
-            title="취업 진행 상황"
-            columns={[
-              {
-                id: 'pending',
-                title: '관심/준비',
-                count: jobs.filter(j => j.status === 'pending').length,
-                onAdd: () => setIsJobModalOpen(true),
-                children: jobs.filter(j => j.status === 'pending').map(j => (
-                  <JobCard key={j.id} job={j} onStatusChange={updateJobStatus} onDelete={deleteJob} />
-                ))
-              },
-              {
-                id: 'applied',
-                title: '서류접수',
-                count: jobs.filter(j => j.status === 'applied').length,
-                children: jobs.filter(j => j.status === 'applied').map(j => (
-                  <JobCard key={j.id} job={j} onStatusChange={updateJobStatus} onDelete={deleteJob} />
-                ))
-              },
-              {
-                id: 'interviewing',
-                title: '면접진행',
-                count: jobs.filter(j => j.status === 'interviewing').length,
-                children: jobs.filter(j => j.status === 'interviewing').map(j => (
-                  <JobCard key={j.id} job={j} onStatusChange={updateJobStatus} onDelete={deleteJob} />
-                ))
-              },
-              {
-                id: 'ended',
-                title: '종료/불합격',
-                count: jobs.filter(j => j.status === 'ended').length,
-                children: jobs.filter(j => j.status === 'ended').map(j => (
-                  <JobCard key={j.id} job={j} onStatusChange={updateJobStatus} onDelete={deleteJob} />
-                ))
-              },
-              {
-                id: 'passed',
-                title: '합격',
-                count: jobs.filter(j => j.status === 'passed').length,
-                children: jobs.filter(j => j.status === 'passed').map(j => (
-                  <JobCard key={j.id} job={j} onStatusChange={updateJobStatus} onDelete={deleteJob} />
-                ))
-              }
-            ]}
-          />
-        )}
+      <main className={styles.main}>
+        <h1 className={styles.title}>
+          {activeTab === 'tasks' ? '생산성 대시보드' : '취업 진행 상황'}
+        </h1>
+
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className={styles.board}>
+            {(activeTab === 'tasks' ? taskColumns : jobColumns).map((column) => (
+              <Droppable key={column.id} droppableId={column.id}>
+                {(provided, snapshot) => (
+                  <div 
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className={clsx(styles.column, snapshot.isDraggingOver && styles.columnDraggingOver)}
+                  >
+                    <div className={styles.columnHeader}>
+                      <h2 className={styles.columnTitle}>{column.title}</h2>
+                      <span className={styles.count}>
+                        {activeTab === 'tasks' 
+                          ? tasks.filter(t => t.status === column.id).length 
+                          : jobs.filter(j => j.status === column.id).length}
+                      </span>
+                    </div>
+                    
+                    {column.id === (activeTab === 'tasks' ? 'todo' : 'pending') && (
+                      <button 
+                        className={styles.addButton} 
+                        onClick={() => activeTab === 'tasks' ? setIsTaskModalOpen(true) : setIsJobModalOpen(true)}
+                      >
+                        <Plus size={18} style={{ marginRight: '4px' }} /> 추가하기
+                      </button>
+                    )}
+
+                    <div className={styles.cardList}>
+                      {activeTab === 'tasks' 
+                        ? tasks
+                            .filter(task => task.status === column.id)
+                            .map((task, index) => (
+                              <Draggable key={task.id} draggableId={task.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                      marginBottom: '12px',
+                                      opacity: snapshot.isDragging ? 0.8 : 1
+                                    }}
+                                  >
+                                    <TaskCard 
+                                      task={task} 
+                                      onToggleTimer={toggleTimer} 
+                                      onDelete={deleteTask}
+                                      onStatusChange={updateTaskStatus}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))
+                        : jobs
+                            .filter(job => job.status === column.id)
+                            .map((job, index) => (
+                              <Draggable key={job.id} draggableId={job.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                      marginBottom: '12px',
+                                      opacity: snapshot.isDragging ? 0.8 : 1
+                                    }}
+                                  >
+                                    <JobCard 
+                                      job={job} 
+                                      onDelete={deleteJob}
+                                      onStatusChange={updateJobStatus}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))
+                      }
+                      {provided.placeholder}
+                    </div>
+                  </div>
+                )}
+              </Droppable>
+            ))}
+          </div>
+        </DragDropContext>
       </main>
 
-      {/* Task Modal */}
+      {/* Modals remain the same */}
       <Modal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} title="새로운 할 일">
         <form onSubmit={handleTaskSubmit} className={modalStyles.form}>
           <div>
@@ -210,45 +241,45 @@ const App: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Job Modal */}
       <Modal isOpen={isJobModalOpen} onClose={() => setIsJobModalOpen(false)} title="새로운 취업 정보">
         <form onSubmit={handleJobSubmit} className={modalStyles.form}>
           <div>
             <label className={modalStyles.label}>회사명</label>
             <input 
               className={modalStyles.input}
-              value={jobForm.company}
-              onChange={(e) => setJobForm({...jobForm, company: e.target.value})}
+              value={jobCompany}
+              onChange={(e) => setJobCompany(e.target.value)}
               placeholder="회사 이름을 입력하세요"
+              autoFocus
               required
             />
           </div>
           <div>
-            <label className={modalStyles.label}>지원 직무</label>
+            <label className={modalStyles.label}>포지션</label>
             <input 
               className={modalStyles.input}
-              value={jobForm.position}
-              onChange={(e) => setJobForm({...jobForm, position: e.target.value})}
-              placeholder="예: 프론트엔드 개발자"
+              value={jobPosition}
+              onChange={(e) => setJobPosition(e.target.value)}
+              placeholder="공고상의 직무를 입력하세요"
               required
             />
           </div>
           <div>
-            <label className={modalStyles.label}>공고 링크 (URL)</label>
+            <label className={modalStyles.label}>공고 링크 (선택)</label>
             <input 
               className={modalStyles.input}
-              value={jobForm.url}
-              onChange={(e) => setJobForm({...jobForm, url: e.target.value})}
+              value={jobUrl}
+              onChange={(e) => setJobUrl(e.target.value)}
               placeholder="https://..."
             />
           </div>
           <div>
-            <label className={modalStyles.label}>간단 메모</label>
+            <label className={modalStyles.label}>메모 (선택)</label>
             <textarea 
               className={modalStyles.textarea}
-              value={jobForm.memo}
-              onChange={(e) => setJobForm({...jobForm, memo: e.target.value})}
-              placeholder="연봉 정보, 우대 사항 등 기록"
+              value={jobMemo}
+              onChange={(e) => setJobMemo(e.target.value)}
+              placeholder="간단한 메모를 남겨보세요"
             />
           </div>
           <div className={modalStyles.buttonGroup}>
