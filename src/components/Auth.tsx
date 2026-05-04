@@ -9,6 +9,18 @@ export const Auth: React.FC = () => {
   const [message, setMessage] = useState('');
   const { signIn, setGuestMode } = useAuth();
 
+  React.useEffect(() => {
+    // URL 해시에서 에러 확인
+    const hash = window.location.hash;
+    if (hash && hash.includes('error=')) {
+      const params = new URLSearchParams(hash.replace('#', ''));
+      const errorMsg = params.get('error_description') || '인증에 실패했습니다.';
+      setMessage(`오류: ${errorMsg}`);
+      // 해시 제거 (사용자에게 반복 노출 방지)
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
