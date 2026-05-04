@@ -9,7 +9,7 @@ import { Modal } from './components/Modal';
 import * as modalStyles from './components/Modal.css';
 import * as styles from './App.css';
 import clsx from 'clsx';
-import { LayoutDashboard, Briefcase, LogOut } from 'lucide-react';
+import { LayoutDashboard, Briefcase, LogOut, LogIn } from 'lucide-react';
 
 const App: React.FC = () => {
   const { user, isGuest, loading: authLoading, signOut } = useAuth();
@@ -73,8 +73,17 @@ const App: React.FC = () => {
             취업 현황
           </button>
           <button className={styles.navItem} onClick={signOut}>
-            <LogOut size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-            로그아웃
+            {user ? (
+              <>
+                <LogOut size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                로그아웃
+              </>
+            ) : (
+              <>
+                <LogIn size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                로그인
+              </>
+            )}
           </button>
         </nav>
       </header>

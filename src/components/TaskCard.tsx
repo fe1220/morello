@@ -36,13 +36,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleTimer, onDelet
       <div className={styles.header}>
         <h3 className={styles.title}>{task.title}</h3>
         <div className={styles.controls}>
-          <button 
-            className={styles.timerButton} 
-            onClick={() => onToggleTimer(task.id)}
-            title={task.isPaused ? '시작' : '정지'}
-          >
-            {task.isPaused ? <Play size={16} fill="currentColor" /> : <Pause size={16} fill="currentColor" />}
-          </button>
+          {(task.status as string) !== 'done' && (
+            <button 
+              className={styles.timerButton} 
+              onClick={() => onToggleTimer(task.id)}
+              title={task.isPaused ? '시작' : '정지'}
+            >
+              {task.isPaused ? <Play size={16} fill="currentColor" /> : <Pause size={16} fill="currentColor" />}
+            </button>
+          )}
           
           {(task.status as string) !== 'done' && (
             <button 
