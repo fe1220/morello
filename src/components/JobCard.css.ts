@@ -64,6 +64,7 @@ export const linkWrapper = style({
   alignItems: 'center',
   gap: '4px',
   marginLeft: 'auto',
+  flexShrink: 0,
 });
 
 export const siteNameText = style({
@@ -78,6 +79,7 @@ export const positionWrapper = style({
   alignItems: 'center',
   gap: vars.space.xs,
   marginBottom: '2px',
+  minWidth: 0,
 });
 
 export const position = style({
@@ -85,6 +87,9 @@ export const position = style({
   color: '#64748b',
   fontWeight: 500,
   margin: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const linkIcon = style({
