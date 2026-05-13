@@ -208,7 +208,6 @@ const App: React.FC = () => {
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
                                     style={{
                                       ...provided.draggableProps.style,
                                       marginBottom: '12px',
@@ -220,6 +219,7 @@ const App: React.FC = () => {
                                       onToggleTimer={toggleTimer} 
                                       onDelete={deleteTask}
                                       onStatusChange={updateTaskStatus}
+                                      dragHandleProps={provided.dragHandleProps}
                                     />
                                   </div>
                                 )}
@@ -233,7 +233,6 @@ const App: React.FC = () => {
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
                                     style={{
                                       ...provided.draggableProps.style,
                                       marginBottom: '12px',
@@ -244,6 +243,8 @@ const App: React.FC = () => {
                                       job={job} 
                                       onCardClick={handleJobClick}
                                       onStatusChange={updateJobStatus}
+                                      onDelete={deleteJob}
+                                      dragHandleProps={provided.dragHandleProps}
                                     />
                                   </div>
                                 )}

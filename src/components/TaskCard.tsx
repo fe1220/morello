@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as styles from './TaskCard.css';
-import { Play, Pause, Trash2, Check } from 'lucide-react';
+import { Play, Pause, Trash2, Check, GripVertical } from 'lucide-react';
 import { Task, TaskStatus } from '../types';
 import { formatTime } from '../utils/time';
 import clsx from 'clsx';
@@ -10,9 +10,12 @@ interface TaskCardProps {
   onToggleTimer: (id: string) => void;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
+  dragHandleProps?: any; // DND 핸들 props 추가
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleTimer, onDelete, onStatusChange }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ 
+  task, onToggleTimer, onDelete, onStatusChange, dragHandleProps 
+}) => {
   const [elapsed, setElapsed] = useState(task.totalTime);
 
   useEffect(() => {
@@ -34,12 +37,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleTimer, onDelet
   return (
     <div className={clsx(styles.card, styles.cardStatusBg[task.status])}>
       <div className={styles.header}>
-        <h3 className={styles.title}>{task.title}</h3>
+        <div className={styles.titleWrapper}>
+          {/* 드래그 전용 핸들 아이콘 */}
+          <div {...dragHandleProps} className={styles.dragHandle}>
+            <GripVertical size={16} />
+          </div>
+          <h3 className={styles.title}>{task.title}</h3>
+        </div>
+        
         <div className={styles.controls}>
           {(task.status as string) !== 'done' && (
             <button 
               className={styles.timerButton} 
-              onClick={() => onToggleTimer(task.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleTimer(task.id);
+              }}
               title={task.isPaused ? '시작' : '정지'}
             >
               {task.isPaused ? <Play size={16} fill="currentColor" /> : <Pause size={16} fill="currentColor" />}
@@ -49,7 +62,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleTimer, onDelet
           {(task.status as string) !== 'done' && (
             <button 
               className={styles.doneButton} 
-              onClick={() => onStatusChange(task.id, 'done')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onStatusChange(task.id, 'done');
+              }}
               title="즉시 완료"
             >
               <Check size={18} />
@@ -58,7 +74,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleTimer, onDelet
           
           <button 
             className={styles.deleteButton} 
-            onClick={() => onDelete(task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task.id);
+            }}
             title="삭제"
           >
             <Trash2 size={16} />
@@ -68,6 +87,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleTimer, onDelet
 
       {(elapsed > 0 || task.status === 'doing') && (
         <div className={styles.timerSection}>
+          <div style={{ width: '24px' }} /> {/* 핸들 영역만큼 띄우기 */}
           <div className={clsx(styles.timeText, !task.isPaused && styles.active)}>
             {formatTime(elapsed)}
           </div>

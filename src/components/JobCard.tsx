@@ -1,16 +1,20 @@
 import React from 'react';
 import * as styles from './JobCard.css';
 import { Job, JobStatus } from '../types';
-import { Trash2, ExternalLink, ChevronDown } from 'lucide-react';
+import { Trash2, ExternalLink, ChevronDown, GripVertical } from 'lucide-react';
 import clsx from 'clsx';
 
 interface JobCardProps {
   job: Job;
   onStatusChange: (id: string, status: JobStatus) => void;
-  onCardClick: (job: Job) => void;
+  onDelete: (id: string) => void;
+  onCardClick?: (job: Job) => void;
+  dragHandleProps?: any; // DND 핸들 props 추가
 }
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onCardClick }) => {
+export const JobCard: React.FC<JobCardProps> = ({ 
+  job, onStatusChange, onDelete, onCardClick, dragHandleProps 
+}) => {
   const statusLabels: Record<JobStatus, string> = {
     pending: '관심/준비',
     applied: '서류접수',
@@ -19,57 +23,58 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onStatusChange, onCardCli
     passed: '합격',
   };
 
-  const getSiteName = (url?: string) => {
-    if (!url) return null;
-    const lowerUrl = url.toLowerCase();
-    if (lowerUrl.includes('wanted')) return '원티드';
-    if (lowerUrl.includes('remember')) return '리멤버';
-    if (lowerUrl.includes('groupby')) return '그룹바이';
-    return '기타';
-  };
-
-  const siteName = getSiteName(job.url);
-
   return (
-    <div className={clsx(styles.card, styles.cardStatusBg[job.status])} onClick={() => onCardClick(job)}>
+    <div 
+      className={clsx(styles.card, styles.cardStatusBg[job.status])}
+      onClick={() => onCardClick?.(job)}
+    >
       <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.companyWrapper}>
-            <h3 className={styles.company}>{job.company}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
+          {/* 드래그 전용 핸들 아이콘 */}
+          <div 
+            {...dragHandleProps} 
+            className={styles.dragHandle}
+            onClick={(e) => e.stopPropagation()} // 클릭 이벤트 전파 차단
+          >
+            <GripVertical size={16} />
           </div>
+          <h3 className={styles.company}>{job.company}</h3>
         </div>
+        <button 
+          className={styles.deleteButton} 
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(job.id);
+          }}
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
       
       <div className={styles.positionWrapper}>
+        <div style={{ width: '20px' }} /> {/* 핸들 영역만큼 띄우기 */}
         <p className={styles.position}>{job.position}</p>
         {job.url && (
-          <div className={styles.linkWrapper}>
-            <span className={styles.siteNameText}>{siteName}</span>
-            <a 
-              href={job.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className={styles.linkIcon}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink size={14} />
-            </a>
-          </div>
+          <a 
+            href={job.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className={styles.linkIcon}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink size={14} />
+          </a>
         )}
       </div>
       
       {job.memo && <p className={styles.memo}>{job.memo}</p>}
       
       <div className={styles.footer}>
-        <div className={styles.statusSelectWrapper}>
+        <div className={styles.statusSelectWrapper} onClick={(e) => e.stopPropagation()}>
           <select 
             className={clsx(styles.statusSelect, styles.statusColors[job.status])}
             value={job.status}
-            onChange={(e) => {
-              e.stopPropagation();
-              onStatusChange(job.id, e.target.value as JobStatus);
-            }}
-            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => onStatusChange(job.id, e.target.value as JobStatus)}
           >
             {Object.entries(statusLabels).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>

@@ -10,7 +10,6 @@ export const card = style({
   gap: '4px',
   border: '1px solid rgba(255, 255, 255, 0.4)',
   transition: 'all 0.2s ease',
-  cursor: 'pointer',
   ':hover': {
     transform: 'translateY(-2px)',
     boxShadow: vars.shadow.md,
@@ -19,9 +18,9 @@ export const card = style({
 
 // 상태별 파스텔 배경색 정의
 export const cardStatusBg = {
-  todo: style({ backgroundColor: 'rgba(241, 245, 249, 0.6)' }),   // 연한 그레이
-  doing: style({ backgroundColor: 'rgba(224, 242, 254, 0.6)' }),  // 연한 하늘색
-  done: style({ backgroundColor: 'rgba(240, 253, 244, 0.6)' }),   // 연한 초록색
+  todo: style({ backgroundColor: 'rgba(241, 245, 249, 0.6)' }),
+  doing: style({ backgroundColor: 'rgba(224, 242, 254, 0.6)' }),
+  done: style({ backgroundColor: 'rgba(240, 253, 244, 0.6)' }),
 };
 
 export const header = style({
@@ -31,13 +30,35 @@ export const header = style({
   gap: vars.space.sm,
 });
 
+export const titleWrapper = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '4px',
+  flex: 1,
+});
+
+export const dragHandle = style({
+  color: '#cbd5e1',
+  cursor: 'grab',
+  padding: '2px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: '2px',
+  ':active': {
+    cursor: 'grabbing',
+  },
+  ':hover': {
+    color: '#94a3b8',
+  }
+});
+
 export const title = style({
-  fontSize: '1rem',
-  fontWeight: 600,
+  fontSize: '0.9rem',
+  fontWeight: 500,
   color: vars.color.text,
   margin: 0,
   lineHeight: 1.3,
-  flex: 1,
 });
 
 export const timerSection = style({

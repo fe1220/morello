@@ -103,6 +103,21 @@ export const linkIcon = style({
   },
 });
 
+export const dragHandle = style({
+  color: '#cbd5e1',
+  cursor: 'grab',
+  padding: '2px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  ':active': {
+    cursor: 'grabbing',
+  },
+  ':hover': {
+    color: '#94a3b8',
+  }
+});
+
 export const memo = style({
   fontSize: '0.85rem',
   color: '#475569',
@@ -118,7 +133,22 @@ export const memo = style({
   border: '1px solid rgba(0, 0, 0, 0.02)',
 });
 
-// Delete button moved to modal, keeping styles for other buttons if needed
+export const deleteButton = style({
+  background: 'none',
+  border: 'none',
+  color: '#cbd5e1',
+  cursor: 'pointer',
+  padding: '4px',
+  borderRadius: vars.radius.sm,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.2s ease',
+  ':hover': {
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    color: '#94a3b8',
+  },
+});
 
 export const footer = style({
   display: 'flex',
