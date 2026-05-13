@@ -16,7 +16,7 @@ const App: React.FC = () => {
   const { user, isGuest, loading: authLoading, signOut } = useAuth();
   const { 
     tasks, jobs, 
-    addTask, updateTaskStatus, toggleTimer, deleteTask,
+    addTask, updateTaskStatus, updateTask, toggleTimer, deleteTask,
     addJob, updateJobStatus, updateJob, deleteJob 
   } = useDashboard(user, isGuest);
   
@@ -219,6 +219,7 @@ const App: React.FC = () => {
                                       onToggleTimer={toggleTimer} 
                                       onDelete={deleteTask}
                                       onStatusChange={updateTaskStatus}
+                                      onUpdateTitle={(id, title) => updateTask(id, { title })}
                                       dragHandleProps={provided.dragHandleProps}
                                     />
                                   </div>

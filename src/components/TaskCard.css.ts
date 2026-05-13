@@ -59,6 +59,21 @@ export const title = style({
   color: vars.color.text,
   margin: 0,
   lineHeight: 1.3,
+  cursor: 'text', // 편집 가능함을 암시
+});
+
+export const editInput = style({
+  fontSize: '0.9rem',
+  fontWeight: 500,
+  color: vars.color.text,
+  border: 'none',
+  borderBottom: `1px solid ${vars.color.primary}`,
+  backgroundColor: 'transparent',
+  padding: '0',
+  margin: '0',
+  width: '100%',
+  outline: 'none',
+  fontFamily: 'inherit',
 });
 
 export const timerSection = style({

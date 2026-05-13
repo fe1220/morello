@@ -236,7 +236,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
 
   return {
     tasks, jobs, loading,
-    addTask, updateTaskStatus, toggleTimer, deleteTask,
+    addTask, updateTaskStatus, updateTask, toggleTimer, deleteTask,
     addJob, updateJobStatus, updateJob, deleteJob
   };
 };
