@@ -18,7 +18,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
   const fetchData = useCallback(async () => {
     if (!user && !isGuest) return;
     setLoading(true);
-    
+
     try {
       if (user) {
         // Supabase Mode
@@ -27,13 +27,16 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
           supabase.from('jobs').select('*').order('date', { ascending: false })
         ]);
 
+        if (tasksRes.error) throw tasksRes.error;
+        if (jobsRes.error) throw jobsRes.error;
+
         if (tasksRes.data) {
           setTasks(tasksRes.data.map(t => ({
             ...t,
-            totalTime: Number(t.total_time),
+            totalTime: Number(t.total_time || 0),
             timeEntries: t.time_entries || [],
             createdAt: t.created_at,
-            isPaused: t.is_paused,
+            isPaused: t.is_paused ?? true,
             status: t.status as TaskStatus
           })));
         }
@@ -82,30 +85,35 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       }
 
       if (data) {
-        const task: Task = { 
-          ...data, 
-          totalTime: Number(data.total_time), 
-          timeEntries: data.time_entries || [], 
+        const task: Task = {
+          ...data,
+          totalTime: Number(data.total_time || 0),
+          timeEntries: data.time_entries || [],
           createdAt: data.created_at,
-          isPaused: data.is_paused,
+          isPaused: data.is_paused ?? true,
           status: data.status as TaskStatus
         };
         setTasks(prev => [task, ...prev]);
       }
     } else {
       const task: Task = { ...newTaskObj, id: crypto.randomUUID() };
-      const updated = [task, ...tasks];
-      setTasks(updated);
-      saveLocal('morello_tasks', updated);
+      setTasks(prev => {
+        const updated = [task, ...prev];
+        saveLocal('morello_tasks', updated);
+        return updated;
+      });
     }
   };
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
-    // 낙관적 업데이트: 로컬 상태를 먼저 변경하여 즉각적인 피드백 제공
-    const previousTasks = [...tasks];
-    const updated = tasks.map(t => t.id === id ? { ...t, ...updates } : t);
-    setTasks(updated);
-    saveLocal('morello_tasks', updated);
+    // Optimistic Update (Local State)
+    setTasks(prev => {
+      const updated = prev.map(t => t.id === id ? { ...t, ...updates } : t);
+      if (!user && isGuest) {
+        saveLocal('morello_tasks', updated);
+      }
+      return updated;
+    });
 
     if (user) {
       const dbUpdates: any = {};
@@ -117,8 +125,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       const { error } = await supabase.from('tasks').update(dbUpdates).eq('id', id);
       if (error) {
         console.error('Error updating task:', error);
-        // 실패 시 롤백 (선택 사항이지만 안정성을 위해 권장)
-        setTasks(previousTasks);
+        fetchData();
       }
     }
   };
@@ -143,15 +150,14 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       const sessionTime = new Date(now).getTime() - new Date(lastEntry.start).getTime();
       updates = { isPaused: true, timeEntries: updatedEntries, totalTime: task.totalTime + sessionTime };
     }
-    
-    // updateTask가 낙관적 업데이트를 수행하므로 즉시 반영됨
+
     await updateTask(id, updates);
   };
 
   const updateTaskStatus = async (id: string, status: TaskStatus) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
-    
+
     let updates: Partial<Task> = { status };
     if (status === 'done' && !task.isPaused) {
       const now = new Date().toISOString();
@@ -169,18 +175,19 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
   };
 
   const deleteTask = async (id: string) => {
-    const previousTasks = [...tasks];
-    const updated = tasks.filter(t => t.id !== id);
-    setTasks(updated);
-    saveLocal('morello_tasks', updated);
-
     if (user) {
       const { error } = await supabase.from('tasks').delete().eq('id', id);
       if (error) {
         console.error('Error deleting task:', error);
-        setTasks(previousTasks);
+        return;
       }
     }
+
+    setTasks(prev => {
+      const updated = prev.filter(t => t.id !== id);
+      saveLocal('morello_tasks', updated);
+      return updated;
+    });
   };
 
   const addJob = async (company: string, position: string, url?: string, memo?: string) => {
@@ -194,23 +201,28 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       if (data) setJobs(prev => [data, ...prev]);
     } else {
       const job: Job = { ...newJobObj, id: crypto.randomUUID() };
-      const updated = [job, ...jobs];
-      setJobs(updated);
-      saveLocal('morello_jobs', updated);
+      setJobs(prev => {
+        const updated = [job, ...prev];
+        saveLocal('morello_jobs', updated);
+        return updated;
+      });
     }
   };
 
   const updateJob = async (id: string, updates: Partial<Job>) => {
-    const previousJobs = [...jobs];
-    const updated = jobs.map(j => j.id === id ? { ...j, ...updates } : j);
-    setJobs(updated);
-    saveLocal('morello_jobs', updated);
+    setJobs(prev => {
+      const updated = prev.map(j => j.id === id ? { ...j, ...updates } : j);
+      if (!user && isGuest) {
+        saveLocal('morello_jobs', updated);
+      }
+      return updated;
+    });
 
     if (user) {
       const { error } = await supabase.from('jobs').update(updates).eq('id', id);
       if (error) {
         console.error('Error updating job:', error);
-        setJobs(previousJobs);
+        fetchData();
       }
     }
   };
@@ -220,18 +232,19 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
   };
 
   const deleteJob = async (id: string) => {
-    const previousJobs = [...jobs];
-    const updated = jobs.filter(j => j.id !== id);
-    setJobs(updated);
-    saveLocal('morello_jobs', updated);
-
     if (user) {
       const { error } = await supabase.from('jobs').delete().eq('id', id);
       if (error) {
         console.error('Error deleting job:', error);
-        setJobs(previousJobs);
+        return;
       }
     }
+
+    setJobs(prev => {
+      const updated = prev.filter(j => j.id !== id);
+      saveLocal('morello_jobs', updated);
+      return updated;
+    });
   };
 
   return {
