@@ -150,7 +150,6 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       const sessionTime = new Date(now).getTime() - new Date(lastEntry.start).getTime();
       updates = { isPaused: true, timeEntries: updatedEntries, totalTime: task.totalTime + sessionTime };
     }
-
     await updateTask(id, updates);
   };
 
@@ -179,6 +178,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       const { error } = await supabase.from('tasks').delete().eq('id', id);
       if (error) {
         console.error('Error deleting task:', error);
+        fetchData(); // Rollback
         return;
       }
     }
@@ -210,6 +210,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
   };
 
   const updateJob = async (id: string, updates: Partial<Job>) => {
+    // Optimistic Update
     setJobs(prev => {
       const updated = prev.map(j => j.id === id ? { ...j, ...updates } : j);
       if (!user && isGuest) {
@@ -222,7 +223,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       const { error } = await supabase.from('jobs').update(updates).eq('id', id);
       if (error) {
         console.error('Error updating job:', error);
-        fetchData();
+        fetchData(); // Rollback
       }
     }
   };
@@ -236,6 +237,7 @@ export const useDashboard = (user: User | null, isGuest: boolean) => {
       const { error } = await supabase.from('jobs').delete().eq('id', id);
       if (error) {
         console.error('Error deleting job:', error);
+        fetchData(); // Rollback
         return;
       }
     }
