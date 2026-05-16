@@ -33,3 +33,6 @@ dist-ssr/
 
 # Vercel
 .vercel
+
+# oh-my-claudecode local state
+.omc/
